@@ -1,0 +1,24 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "d4e2563a5e97a9cc1e642ca4ecaaf948"
+name = "Multi serial numbers"
+application_url = "https://field-mambo-zone-myers.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2026-01"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_all_orders,read_customers,read_order_edits,read_orders,read_products,write_order_edits,write_orders,write_products"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [
+  "https://field-mambo-zone-myers.trycloudflare.com/api/auth",
+  "https://field-mambo-zone-myers.trycloudflare.com/auth/callback"
+]

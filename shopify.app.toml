@@ -1,0 +1,31 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "a4e335ea7eee85ed6af86fdc9af54e9e"
+name = "saddle-serials-app"
+application_url = "https://field-mambo-zone-myers.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true
+
+[webhooks]
+api_version = "2026-01"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_all_orders,write_order_edits,read_order_edits,read_orders,write_orders,read_products,write_products,read_customers"
+
+[auth]
+redirect_urls = [ 
+  "https://field-mambo-zone-myers.trycloudflare.com/api/auth",
+  "https://field-mambo-zone-myers.trycloudflare.com/auth/callback"
+]
