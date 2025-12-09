@@ -1,7 +1,5 @@
-# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
-
 client_id = "2d5ef35ee82a7aae1fee609f33e4effc"
-name = "Multiple Serial Numbers in orders"
+name = "Multi serial numbers"
 application_url = "https://saddle-serial-numbers.onrender.com"
 embedded = true
 
