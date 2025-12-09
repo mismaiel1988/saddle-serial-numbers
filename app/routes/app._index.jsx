@@ -81,8 +81,9 @@ export const action = async ({ request }) => {
 
 export default function AppIndex() {
   return (
-    <div>
-      <h1>Multi Serial Numbers App</h1>
+    <div style={{ padding: "2rem" }}>
+      <h1>Multi Serial Numbers</h1>
+      <p>Your app is successfully running inside Shopify 🎉</p>
     </div>
   );
 }
