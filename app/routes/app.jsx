@@ -1,5 +1,6 @@
 import { Outlet, useLoaderData } from "react-router";
-import { AppProvider } from "@shopify/shopify-app-react-router/react";
+import { AppProvider as ShopifyAppProvider } from "@shopify/shopify-app-react-router/react";
+import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
@@ -11,8 +12,10 @@ export default function App() {
   const { apiKey } = useLoaderData();
 
   return (
-    <AppProvider isEmbeddedApp apiKey={apiKey}>
-      <Outlet />
-    </AppProvider>
+    <ShopifyAppProvider isEmbeddedApp apiKey={apiKey}>
+      <PolarisAppProvider i18n={{}}>
+        <Outlet />
+      </PolarisAppProvider>
+    </ShopifyAppProvider>
   );
 }
