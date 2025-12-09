@@ -1,4 +1,3 @@
-// app/routes/app.jsx
 import {
   AppProvider as PolarisAppProvider,
   Frame
