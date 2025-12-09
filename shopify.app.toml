@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "a4e335ea7eee85ed6af86fdc9af54e9e"
-name = "saddle-serials-app"
+client_id = "2d5ef35ee82a7aae1fee609f33e4effc"
+name = "Multiple Serial Numbers in orders"
 application_url = "https://saddle-serial-numbers.onrender.com"
 embedded = true
 
@@ -25,7 +25,7 @@ api_version = "2026-01"
 scopes = "read_all_orders,write_order_edits,read_order_edits,read_orders,write_orders,read_products,write_products,read_customers"
 
 [auth]
-redirect_urls = [ 
-  "https://saddle-serial-numbers.onrender.com/auth/callback",
-  "https://saddle-serial-numbers.onrender.com/auth/shopify/callback"
+redirect_urls = [
+  "https://saddle-serial-numbers.onrender.com/api/auth",
+  "https://saddle-serial-numbers.onrender.com/auth/callback"
 ]
