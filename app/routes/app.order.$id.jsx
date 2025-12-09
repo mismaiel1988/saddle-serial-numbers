@@ -1,5 +1,5 @@
 import { useLoaderData } from "react-router";
-import { authenticate } from "../shopify.server";
+import { authenticate } from "../shopify.server.js";
 
 export const loader = async ({ request, params }) => {
   const { admin } = await authenticate.admin(request);

@@ -1,7 +1,7 @@
 // CLEANED app._index.jsx
 
 import { useLoaderData, useSubmit } from "react-router";
-import { authenticate } from "../../shopify.server";
+import { authenticate } from "../shopify.server.js";
 import { useState, useEffect } from "react";
 
 // Loader
