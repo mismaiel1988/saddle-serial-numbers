@@ -1,6 +1,6 @@
 import { useLoaderData, Link } from "react-router";
 import { Card, Page, ResourceList, Text, Spinner } from "@shopify/polaris";
-import { authenticate } from "../shopify.server";
+import { authenticate } from "../shopify.server.js";
 
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
