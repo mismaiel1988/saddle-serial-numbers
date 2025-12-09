@@ -1,5 +1,6 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
-import { AppProvider } from "@shopify/shopify-app-react-router";
+import { AppProvider } from "@shopify/app-bridge-react";
+import "@shopify/polaris/build/esm/styles.css";
 
 export default function App() {
   return (
@@ -16,7 +17,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <AppProvider>
+        <AppProvider isEmbeddedApp>
           <Outlet />
         </AppProvider>
         <ScrollRestoration />
