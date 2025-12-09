@@ -1,36 +1,27 @@
-import { useLoaderData, useSubmit } from "react-router";
-import { authenticate } from "../shopify.server.js";
-import { useState, useEffect } from "react";
+import { useLoaderData, Link } from "react-router";
+import { Card, Page, ResourceList, Text, Spinner } from "@shopify/polaris";
+import { authenticate } from "../shopify.server";
 
-// Loader
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
 
-  const response = await admin.graphql(`#graphql
-    query getRecentOrders {
-      orders(first: 50, reverse: true) {
+  const response = await admin.graphql(`
+    query getOrders {
+      orders(first: 20, sortKey: CREATED_AT, reverse: true) {
         edges {
           node {
             id
             name
             createdAt
-            customer {
-              firstName
-              lastName
-            }
-            lineItems(first: 20) {
+            displayFulfillmentStatus
+            lineItems(first: 5) {
               edges {
                 node {
                   id
                   title
                   quantity
-                  currentQuantity
-                  product { id tags }
                 }
               }
-            }
-            metafield(namespace: "custom", key: "serial_numbers") {
-              value
             }
           }
         }
@@ -38,52 +29,35 @@ export const loader = async ({ request }) => {
     }
   `);
 
-  const data = await response.json();
-
-  const ordersWithSaddles = data.data.orders.edges.filter(({ node: order }) =>
-    order.lineItems.edges.some(({ node: item }) =>
-      item.product?.tags.includes("saddles")
-    )
-  );
-
-  return { orders: ordersWithSaddles };
-};
-
-// Action
-export const action = async ({ request }) => {
-  const { admin } = await authenticate.admin(request);
-  const formData = await request.formData();
-
-  await admin.graphql(
-    `#graphql
-      mutation updateOrderMetafield($input: MetafieldsSetInput!) {
-        metafieldsSet(metafields: [$input]) {
-          metafields { id namespace key value }
-          userErrors { message }
-        }
-      }
-    `,
-    {
-      variables: {
-        input: {
-          ownerId: formData.get("orderId"),
-          namespace: "custom",
-          key: "serial_numbers",
-          value: formData.get("serials"),
-          type: "json"
-        }
-      }
-    }
-  );
-
-  return { success: true };
+  const json = await response.json();
+  return { orders: json.data.orders.edges.map(edge => edge.node) };
 };
 
 export default function AppIndex() {
+  const { orders } = useLoaderData();
+
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Multi Serial Numbers</h1>
-      <p>Your app is successfully running inside Shopify 🎉</p>
-    </div>
+    <Page title="Orders – Assign Serial Numbers">
+      <Card>
+        <ResourceList
+          resourceName={{ singular: "order", plural: "orders" }}
+          items={orders}
+          renderItem={(order) => {
+            return (
+              <ResourceList.Item
+                id={order.id}
+                accessibilityLabel={`View details for ${order.name}`}
+                url={`/app/order/${encodeURIComponent(order.id)}`}
+              >
+                <Text as="h3" variant="headingSm">
+                  {order.name}
+                </Text>
+                <div>{new Date(order.createdAt).toLocaleString()}</div>
+              </ResourceList.Item>
+            );
+          }}
+        />
+      </Card>
+    </Page>
   );
 }

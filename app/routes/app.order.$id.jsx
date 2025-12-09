@@ -1,95 +1,120 @@
-import { useLoaderData } from "react-router";
-import { authenticate } from "../shopify.server.js";
+import {
+  useLoaderData,
+  useSubmit,
+  Form,
+  useActionData,
+} from "react-router";
+import {
+  Page,
+  Card,
+  TextField,
+  Button,
+  BlockStack,
+  Text,
+} from "@shopify/polaris";
+import { authenticate } from "../../shopify.server";
 
 export const loader = async ({ request, params }) => {
   const { admin } = await authenticate.admin(request);
-  const orderId = `gid://shopify/Order/${params.id}`;
-  
-  const response = await admin.graphql(
-    `#graphql
-      query getOrder($id: ID!) {
-        order(id: $id) {
-          id
-          name
-          createdAt
-          customer {
-            firstName
-            lastName
-          }
-          lineItems(first: 50) {
-            edges {
-              node {
-                id
-                title
-                quantity
-                product {
-                  id
-                  tags
-                }
+
+  const orderId = decodeURIComponent(params.id);
+
+  const response = await admin.graphql(`
+    query GetOrder($id: ID!) {
+      order(id: $id) {
+        id
+        name
+        lineItems(first: 20) {
+          edges {
+            node {
+              id
+              title
+              quantity
+              customAttributes {
+                key
+                value
               }
             }
           }
-          metafield(namespace: "custom", key: "serial_numbers") {
-            value
-          }
         }
       }
-    `,
-    {
-      variables: { id: orderId }
     }
-  );
+  `, {
+    variables: { id: orderId },
+  });
 
-  const data = await response.json();
-  return { order: data.data.order };
+  const json = await response.json();
+  return { order: json.data.order };
 };
 
-export default function OrderDetail() {
+export const action = async ({ request, params }) => {
+  const formData = await request.formData();
+  const serials = formData.get("serials"); // comma-separated
+  const lineItemId = formData.get("lineItemId");
+
+  const { admin } = await authenticate.admin(request);
+
+  await admin.graphql(`
+    mutation UpdateLineItemMetafield($input: OrderLineItemUpdateInput!) {
+      orderLineItemUpdate(input: $input) {
+        orderLineItem {
+          id
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `, {
+    variables: {
+      input: {
+        id: lineItemId,
+        customAttributes: [
+          {
+            key: "serial_numbers",
+            value: serials,
+          }
+        ]
+      }
+    }
+  });
+
+  return { success: true };
+};
+
+export default function OrderSerialPage() {
   const { order } = useLoaderData();
-  
-  const saddleItems = order.lineItems.edges.filter(
-    ({ node: item }) => item.product?.tags.includes("saddles")
-  );
+  const actionData = useActionData();
 
   return (
-    <s-page 
-      heading={`Order ${order.name} - Serial Numbers`}
-      backAction={{ content: "Orders", url: "/app" }}
+    <Page
+      title={`Assign Serials – ${order.name}`}
+      backAction={{ content: "Back", url: "/app" }}
     >
-      <s-section heading="Customer">
-        <s-paragraph>
-          {order.customer?.firstName} {order.customer?.lastName}
-        </s-paragraph>
-      </s-section>
+      {actionData?.success && (
+        <Text tone="success">Saved successfully!</Text>
+      )}
 
-      <s-section heading="Saddles in this order">
-        {saddleItems.map(({ node: item }) => (
-          <div key={item.id} style={{ marginBottom: '24px', padding: '16px', border: '1px solid #e1e3e5', borderRadius: '8px' }}>
-            <strong>{item.title}</strong>
-            <br />
-            Quantity: {item.quantity}
-            <br /><br />
-            {Array.from({ length: item.quantity }).map((_, index) => (
-              <div key={index} style={{ marginBottom: '8px' }}>
-                <label>
-                  Serial #{index + 1}: 
-                  <input 
-                    type="text" 
-                    placeholder="Enter serial number"
-                    style={{ marginLeft: '8px', padding: '4px 8px' }}
-                  />
-                </label>
-              </div>
-            ))}
-          </div>
-        ))}
-      </s-section>
+      {order.lineItems.edges.map(({ node }) => (
+        <Card key={node.id} title={node.title} sectioned>
+          <Form method="post">
+            <input type="hidden" name="lineItemId" value={node.id} />
 
-      <s-section>
-        <button style={{ padding: '12px 24px', background: '#008060', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Save Serial Numbers
-        </button>
-      </s-section>
-    </s-page>
+            <BlockStack gap="400">
+              <TextField
+                label="Serial Numbers"
+                name="serials"
+                autoComplete="off"
+                placeholder="ABC123, DEF456, GHI789"
+                labelHidden={false}
+              />
+
+              <Button submit>Save</Button>
+            </BlockStack>
+          </Form>
+        </Card>
+      ))}
+    </Page>
   );
 }
