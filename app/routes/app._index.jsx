@@ -1,24 +1,25 @@
 import { useLoaderData, Link } from "react-router";
-import { Card, Page, ResourceList, Text, Spinner } from "@shopify/polaris";
 import { authenticate } from "../shopify.server.js";
+import { Card, Page, Layout, ResourceList, Text } from "@shopify/polaris";
 
+// Loader fetches 20 most recent orders
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
 
   const response = await admin.graphql(`
-    query getOrders {
+    query {
       orders(first: 20, sortKey: CREATED_AT, reverse: true) {
         edges {
           node {
             id
             name
             createdAt
-            displayFulfillmentStatus
-            lineItems(first: 5) {
+            displayFinancialStatus
+            lineItems(first: 10) {
               edges {
                 node {
                   id
-                  title
+                  name
                   quantity
                 }
               }
@@ -29,35 +30,39 @@ export const loader = async ({ request }) => {
     }
   `);
 
-  const json = await response.json();
-  return { orders: json.data.orders.edges.map(edge => edge.node) };
+  const data = await response.json();
+  return { orders: data.data.orders.edges };
 };
 
 export default function AppIndex() {
   const { orders } = useLoaderData();
 
   return (
-    <Page title="Orders – Assign Serial Numbers">
-      <Card>
-        <ResourceList
-          resourceName={{ singular: "order", plural: "orders" }}
-          items={orders}
-          renderItem={(order) => {
-            return (
-              <ResourceList.Item
-                id={order.id}
-                accessibilityLabel={`View details for ${order.name}`}
-                url={`/app/order/${encodeURIComponent(order.id)}`}
-              >
-                <Text as="h3" variant="headingSm">
-                  {order.name}
-                </Text>
-                <div>{new Date(order.createdAt).toLocaleString()}</div>
-              </ResourceList.Item>
-            );
-          }}
-        />
-      </Card>
+    <Page title="Multi Serial Numbers">
+      <Layout>
+        <Layout.Section>
+          <Card title="Recent Orders" sectioned>
+            <ResourceList
+              resourceName={{ singular: "order", plural: "orders" }}
+              items={orders.map((o) => ({
+                id: o.node.id,
+                name: o.node.name,
+                createdAt: o.node.createdAt,
+              }))}
+              renderItem={(item) => {
+                const orderId = item.id.split("/").pop();
+                return (
+                  <Link to={`/app/order/${orderId}`}>
+                    <Text variant="bodyStrong">{item.name}</Text>
+                    <br />
+                    <Text>{new Date(item.createdAt).toLocaleString()}</Text>
+                  </Link>
+                );
+              }}
+            />
+          </Card>
+        </Layout.Section>
+      </Layout>
     </Page>
   );
 }
