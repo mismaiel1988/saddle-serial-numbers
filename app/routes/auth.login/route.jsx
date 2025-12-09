@@ -1,47 +1,47 @@
-import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { useState } from "react";
-import { Form, useActionData, useLoaderData } from "react-router";
+import { redirect, Form, useLoaderData } from "react-router";
 import { login } from "../../shopify.server";
-import { loginErrorMessage } from "./error.server";
+import styles from "./styles.module.css";
 
 export const loader = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
+  const url = new URL(request.url);
 
-  return { errors };
+  // If Shopify sends ?shop=xxxxx, redirect to OAuth
+  if (url.searchParams.get("shop")) {
+    throw redirect(`/app?${url.searchParams.toString()}`);
+  }
+
+  // You can pass error info here later if you want
+  return { errors: null };
 };
 
 export const action = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
-
-  return {
-    errors,
-  };
+  // Let Shopify’s helper handle the OAuth login
+  return login(request);
 };
 
-export default function Auth() {
-  const loaderData = useLoaderData();
-  const actionData = useActionData();
-  const [shop, setShop] = useState("");
-  const { errors } = actionData || loaderData;
+export default function Login() {
+  const { errors } = useLoaderData();
 
   return (
-    <AppProvider embedded={false}>
-      <s-page>
-        <Form method="post">
-          <s-section heading="Log in">
-            <s-text-field
-              name="shop"
-              label="Shop domain"
-              details="example.myshopify.com"
-              value={shop}
-              onChange={(e) => setShop(e.currentTarget.value)}
-              autocomplete="on"
-              error={errors.shop}
-            ></s-text-field>
-            <s-button type="submit">Log in</s-button>
-          </s-section>
-        </Form>
-      </s-page>
-    </AppProvider>
+    <div className={styles.index}>
+      <h1 className={styles.heading}>Log in</h1>
+
+      {errors && <p style={{ color: "red" }}>{errors}</p>}
+
+      <Form method="POST" className={styles.form}>
+        <label className={styles.label}>
+          <span>Shop domain:</span>
+          <input
+            name="shop"
+            placeholder="my-store.myshopify.com"
+            className={styles.input}
+          />
+        </label>
+
+        <button type="submit" className={styles.button}>
+          Log in
+        </button>
+      </Form>
+    </div>
   );
 }
