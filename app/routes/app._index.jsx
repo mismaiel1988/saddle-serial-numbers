@@ -80,6 +80,9 @@ export const action = async ({ request }) => {
 };
 
 export default function AppIndex() {
-  const { orders } = useLoaderData();
-  return <div style={{ padding: 20 }}>Loaded {orders.length} orders</div>;
+  return (
+    <div>
+      <h1>Multi Serial Numbers App</h1>
+    </div>
+  );
 }
