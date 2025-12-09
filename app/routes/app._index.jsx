@@ -1,7 +1,6 @@
 import { useLoaderData, useSubmit } from "react-router";
 import { authenticate } from "../shopify.server";
 import { useState, useEffect } from "react";
-import { Page, Layout, Card, Text, Button, TextField, BlockStack, InlineStack } from "@shopify/polaris";
 
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
@@ -60,7 +59,7 @@ export const action = async ({ request }) => {
   const orderId = formData.get("orderId");
   const serialsData = formData.get("serials");
 
-  const response = await admin.graphql(
+  await admin.graphql(
     `#graphql
       mutation updateOrderMetafield($input: MetafieldsSetInput!) {
         metafieldsSet(metafields: [$input]) {
@@ -134,87 +133,108 @@ export default function Index() {
   };
 
   return (
-    <Page title="Saddle Serial Numbers">
-      <Layout>
-        <Layout.Section>
-          <Card>
-            <BlockStack gap="400">
-              <Text variant="headingMd" as="h2">Recent Orders</Text>
-              {orders.length === 0 ? (
-                <Text>No orders with saddles found.</Text>
-              ) : (
-                <Text>Found {orders.length} order{orders.length !== 1 ? 's' : ''} with saddles.</Text>
-              )}
-              
-              <BlockStack gap="400">
-                {orders.map(({ node: order }) => {
-                  const saddleItems = order.lineItems.edges.filter(
-                    ({ node: item }) => item.product?.tags.includes("saddles") && item.currentQuantity > 0
-                  );
-                  
-                  const saddleCount = saddleItems.reduce(
-                    (sum, { node: item }) => sum + item.quantity,
-                    0
-                  );
-                  
-                  const hasSerials = order.metafield?.value;
-                  const isExpanded = expandedOrder === order.id;
-                  
-                  return (
-                    <Card key={order.id}>
-                      <BlockStack gap="400">
-                        <div
-                          onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <InlineStack align="space-between">
-                            <BlockStack gap="200">
-                              <Text variant="headingSm" as="h3">
-                                {order.name} - {order.customer?.firstName} {order.customer?.lastName}
-                              </Text>
-                              <Text>
-                                {saddleCount} saddle{saddleCount !== 1 ? 's' : ''} - 
-                                {hasSerials ? ' ✅ Serials captured' : ' ⚠️ Needs serials'}
-                              </Text>
-                            </BlockStack>
-                            <Text>{isExpanded ? '▼' : '▶'}</Text>
-                          </InlineStack>
-                        </div>
-                        
-                        {isExpanded && (
-                          <BlockStack gap="400">
-                            {saddleItems.map(({ node: item }) => (
-                              <Card key={item.id}>
-                                <BlockStack gap="300">
-                                  <Text variant="headingSm">{item.title}</Text>
-                                  <Text>Quantity: {item.quantity}</Text>
-                                  {Array.from({ length: item.quantity }).map((_, index) => (
-                                    <TextField
-                                      key={index}
-                                      label={`Serial #${index + 1}`}
-                                      value={serials[order.id]?.[item.id]?.[index] || ''}
-                                      onChange={(value) => handleSerialChange(order.id, item.id, index, value)}
-                                      placeholder="Enter serial number"
-                                      autoComplete="off"
-                                    />
-                                  ))}
-                                </BlockStack>
-                              </Card>
-                            ))}
-                            <Button primary onClick={() => handleSave(order.id)}>
-                              Save Serial Numbers
-                            </Button>
-                          </BlockStack>
-                        )}
-                      </BlockStack>
-                    </Card>
-                  );
-                })}
-              </BlockStack>
-            </BlockStack>
-          </Card>
-        </Layout.Section>
-      </Layout>
-    </Page>
+    <div style={{ padding: '20px', fontFamily: 'Inter, sans-serif' }}>
+      <h1>Saddle Serial Numbers</h1>
+      
+      <div style={{ marginBottom: '20px' }}>
+        {orders.length === 0 ? (
+          <p>No orders with saddles found.</p>
+        ) : (
+          <p>Found {orders.length} order{orders.length !== 1 ? 's' : ''} with saddles.</p>
+        )}
+      </div>
+      
+      {orders.map(({ node: order }) => {
+        const saddleItems = order.lineItems.edges.filter(
+          ({ node: item }) => item.product?.tags.includes("saddles") && item.currentQuantity > 0
+        );
+        
+        const saddleCount = saddleItems.reduce(
+          (sum, { node: item }) => sum + item.quantity,
+          0
+        );
+        
+        const hasSerials = order.metafield?.value;
+        const isExpanded = expandedOrder === order.id;
+        
+        return (
+          <div
+            key={order.id}
+            style={{
+              marginBottom: '16px',
+              border: '1px solid #e1e3e5',
+              borderRadius: '8px',
+              overflow: 'hidden'
+            }}
+          >
+            <div
+              onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+              style={{
+                padding: '16px',
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                backgroundColor: isExpanded ? '#f6f6f7' : 'white'
+              }}
+            >
+              <div>
+                <strong>{order.name}</strong> - {order.customer?.firstName} {order.customer?.lastName}
+                <br />
+                {saddleCount} saddle{saddleCount !== 1 ? 's' : ''} -
+                {hasSerials ? ' ✅ Serials captured' : ' ⚠️ Needs serials'}
+              </div>
+              <span>{isExpanded ? '▼' : '▶'}</span>
+            </div>
+            
+            {isExpanded && (
+              <div style={{ padding: '16px', backgroundColor: '#fafbfb', borderTop: '1px solid #e1e3e5' }}>
+                {saddleItems.map(({ node: item }) => (
+                  <div key={item.id} style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'white', borderRadius: '8px' }}>
+                    <strong>{item.title}</strong>
+                    <br />
+                    Quantity: {item.quantity}
+                    <br /><br />
+                    {Array.from({ length: item.quantity }).map((_, index) => (
+                      <div key={index} style={{ marginBottom: '8px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ minWidth: '80px' }}>Serial #{index + 1}:</span>
+                          <input
+                            type="text"
+                            placeholder="Enter serial number"
+                            value={serials[order.id]?.[item.id]?.[index] || ''}
+                            onChange={(e) => handleSerialChange(order.id, item.id, index, e.target.value)}
+                            style={{
+                              padding: '8px 12px',
+                              border: '1px solid #c9cccf',
+                              borderRadius: '4px',
+                              flex: 1
+                            }}
+                          />
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+                <button
+                  onClick={() => handleSave(order.id)}
+                  style={{
+                    padding: '12px 24px',
+                    background: '#008060',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: '600'
+                  }}
+                >
+                  Save Serial Numbers
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
