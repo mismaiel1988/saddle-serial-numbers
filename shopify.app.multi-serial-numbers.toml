@@ -1,8 +1,8 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "d4e2563a5e97a9cc1e642ca4ecaaf948"
+client_id = "2d5ef35ee82a7aae1fee609f33e4effc"
 name = "Multi serial numbers"
-application_url = "https://field-mambo-zone-myers.trycloudflare.com"
+application_url = "https://saddle-serial-numbers.onrender.com"
 embedded = true
 
 [build]
@@ -19,6 +19,6 @@ use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "https://field-mambo-zone-myers.trycloudflare.com/api/auth",
-  "https://field-mambo-zone-myers.trycloudflare.com/auth/callback"
+  "https://saddle-serial-numbers.onrender.com/api/auth",
+  "https://saddle-serial-numbers.onrender.com/auth/callback"
 ]
