@@ -1,6 +1,17 @@
 import { useLoaderData, useSubmit } from "react-router";
 import { authenticate } from "../shopify.server";
 import { useState, useEffect } from "react";
+import { useLoaderData, useSubmit } from "react-router";
+import { authenticate } from "../shopify.server";
+import { useState, useEffect } from "react";
+
+// Add this script tag to load App Bridge
+if (typeof document !== 'undefined') {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.shopify.com/shopifycloud/app-bridge.js';
+  document.head.appendChild(script);
+}
+
 
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
