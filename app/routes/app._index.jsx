@@ -133,7 +133,7 @@ export default function Index() {
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ padding: '20px', fontFamily: 'Inter, sans-serif', minHeight: '100vh', backgroundColor: 'white' }}>
       <h1>Saddle Serial Numbers</h1>
       
       <div style={{ marginBottom: '20px' }}>
