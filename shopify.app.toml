@@ -2,7 +2,7 @@
 
 client_id = "a4e335ea7eee85ed6af86fdc9af54e9e"
 name = "saddle-serials-app"
-application_url = "https://field-mambo-zone-myers.trycloudflare.com"
+application_url = "https://saddle-serial-numbers.onrender.com"
 embedded = true
 
 [build]
@@ -26,6 +26,6 @@ scopes = "read_all_orders,write_order_edits,read_order_edits,read_orders,write_o
 
 [auth]
 redirect_urls = [ 
-  "https://field-mambo-zone-myers.trycloudflare.com/api/auth",
-  "https://field-mambo-zone-myers.trycloudflare.com/auth/callback"
+  "https://saddle-serial-numbers.onrender.com/auth/callback",
+  "https://saddle-serial-numbers.onrender.com/auth/shopify/callback"
 ]

@@ -1,21 +1,13 @@
+// CLEANED app._index.jsx
+
 import { useLoaderData, useSubmit } from "react-router";
 import { authenticate } from "../shopify.server";
 import { useState, useEffect } from "react";
-import { useLoaderData, useSubmit } from "react-router";
-import { authenticate } from "../shopify.server";
-import { useState, useEffect } from "react";
 
-// Add this script tag to load App Bridge
-if (typeof document !== 'undefined') {
-  const script = document.createElement('script');
-  script.src = 'https://cdn.shopify.com/shopifycloud/app-bridge.js';
-  document.head.appendChild(script);
-}
-
-
+// Loader
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
-  
+
   const response = await admin.graphql(
     `#graphql
       query getRecentOrders {
@@ -54,16 +46,17 @@ export const loader = async ({ request }) => {
   );
 
   const data = await response.json();
-  
+
   const ordersWithSaddles = data.data.orders.edges.filter(({ node: order }) => {
-    return order.lineItems.edges.some(({ node: item }) => 
+    return order.lineItems.edges.some(({ node: item }) =>
       item.product?.tags.includes("saddles")
     );
   });
-  
+
   return { orders: ordersWithSaddles };
 };
 
+// Action
 export const action = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
@@ -103,6 +96,7 @@ export const action = async ({ request }) => {
   return { success: true };
 };
 
+// Component
 export default function Index() {
   const { orders } = useLoaderData();
   const submit = useSubmit();
@@ -116,7 +110,7 @@ export default function Index() {
         try {
           loadedSerials[order.id] = JSON.parse(order.metafield.value);
         } catch (e) {
-          console.error('Error parsing serials:', e);
+          console.error("Error parsing serials:", e);
         }
       }
     });
@@ -124,15 +118,15 @@ export default function Index() {
   }, [orders]);
 
   const handleSerialChange = (orderId, lineItemId, index, value) => {
-    setSerials(prev => ({
+    setSerials((prev) => ({
       ...prev,
       [orderId]: {
         ...prev[orderId],
         [lineItemId]: {
           ...prev[orderId]?.[lineItemId],
-          [index]: value
-        }
-      }
+          [index]: value,
+        },
+      },
     }));
   };
 
@@ -144,82 +138,107 @@ export default function Index() {
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Inter, sans-serif', minHeight: '100vh', backgroundColor: 'white' }}>
+    <div style={{ padding: "20px", fontFamily: "Inter, sans-serif" }}>
       <h1>Saddle Serial Numbers</h1>
-      
-      <div style={{ marginBottom: '20px' }}>
+
+      <div style={{ marginBottom: "20px" }}>
         {orders.length === 0 ? (
           <p>No orders with saddles found.</p>
         ) : (
-          <p>Found {orders.length} order{orders.length !== 1 ? 's' : ''} with saddles.</p>
+          <p>Found {orders.length} order{orders.length !== 1 ? "s" : ""} with saddles.</p>
         )}
       </div>
-      
+
       {orders.map(({ node: order }) => {
         const saddleItems = order.lineItems.edges.filter(
-          ({ node: item }) => item.product?.tags.includes("saddles") && item.currentQuantity > 0
+          ({ node: item }) =>
+            item.product?.tags.includes("saddles") && item.currentQuantity > 0
         );
-        
+
         const saddleCount = saddleItems.reduce(
           (sum, { node: item }) => sum + item.quantity,
           0
         );
-        
+
         const hasSerials = order.metafield?.value;
         const isExpanded = expandedOrder === order.id;
-        
+
         return (
           <div
             key={order.id}
             style={{
-              marginBottom: '16px',
-              border: '1px solid #e1e3e5',
-              borderRadius: '8px',
-              overflow: 'hidden'
+              marginBottom: "16px",
+              border: "1px solid #e1e3e5",
+              borderRadius: "8px",
             }}
           >
             <div
               onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
               style={{
-                padding: '16px',
-                cursor: 'pointer',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                backgroundColor: isExpanded ? '#f6f6f7' : 'white'
+                padding: "16px",
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "space-between",
+                backgroundColor: isExpanded ? "#f6f6f7" : "white",
               }}
             >
               <div>
-                <strong>{order.name}</strong> - {order.customer?.firstName} {order.customer?.lastName}
+                <strong>{order.name}</strong> – {order.customer?.firstName}{" "}
+                {order.customer?.lastName}
                 <br />
-                {saddleCount} saddle{saddleCount !== 1 ? 's' : ''} -
-                {hasSerials ? ' ✅ Serials captured' : ' ⚠️ Needs serials'}
+                {saddleCount} saddle{saddleCount !== 1 ? "s" : ""} –{" "}
+                {hasSerials ? "✅ Serials captured" : "⚠️ Needs serials"}
               </div>
-              <span>{isExpanded ? '▼' : '▶'}</span>
+              <span>{isExpanded ? "▼" : "▶"}</span>
             </div>
-            
+
             {isExpanded && (
-              <div style={{ padding: '16px', backgroundColor: '#fafbfb', borderTop: '1px solid #e1e3e5' }}>
+              <div
+                style={{
+                  padding: "16px",
+                  backgroundColor: "#fafbfb",
+                  borderTop: "1px solid #e1e3e5",
+                }}
+              >
                 {saddleItems.map(({ node: item }) => (
-                  <div key={item.id} style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'white', borderRadius: '8px' }}>
+                  <div
+                    key={item.id}
+                    style={{
+                      marginBottom: "24px",
+                      padding: "16px",
+                      backgroundColor: "white",
+                      borderRadius: "8px",
+                    }}
+                  >
                     <strong>{item.title}</strong>
                     <br />
                     Quantity: {item.quantity}
-                    <br /><br />
+                    <br />
+                    <br />
+
                     {Array.from({ length: item.quantity }).map((_, index) => (
-                      <div key={index} style={{ marginBottom: '8px' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ minWidth: '80px' }}>Serial #{index + 1}:</span>
+                      <div key={index} style={{ marginBottom: "8px" }}>
+                        <label style={{ display: "flex", gap: "8px" }}>
+                          Serial #{index + 1}:
                           <input
                             type="text"
                             placeholder="Enter serial number"
-                            value={serials[order.id]?.[item.id]?.[index] || ''}
-                            onChange={(e) => handleSerialChange(order.id, item.id, index, e.target.value)}
+                            value={
+                              serials[order.id]?.[item.id]?.[index] || ""
+                            }
+                            onChange={(e) =>
+                              handleSerialChange(
+                                order.id,
+                                item.id,
+                                index,
+                                e.target.value
+                              )
+                            }
                             style={{
-                              padding: '8px 12px',
-                              border: '1px solid #c9cccf',
-                              borderRadius: '4px',
-                              flex: 1
+                              padding: "8px 12px",
+                              border: "1px solid #c9cccf",
+                              borderRadius: "4px",
+                              flex: 1,
                             }}
                           />
                         </label>
@@ -227,16 +246,17 @@ export default function Index() {
                     ))}
                   </div>
                 ))}
+
                 <button
                   onClick={() => handleSave(order.id)}
                   style={{
-                    padding: '12px 24px',
-                    background: '#008060',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontWeight: '600'
+                    padding: "12px 24px",
+                    background: "#008060",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "600",
                   }}
                 >
                   Save Serial Numbers
