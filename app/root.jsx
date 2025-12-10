@@ -4,7 +4,8 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-} from "react-router"; // <-- correct package
+} from "@remix-run/react";  // ✔️ correct package
+
 
 import { AppProvider } from "@shopify/polaris";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css";
