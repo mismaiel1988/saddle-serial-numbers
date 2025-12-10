@@ -1,5 +1,5 @@
 import { useLoaderData, Form, redirect } from "react-router";
-import { authenticate } from "../../shopify.server.js";
+import { authenticate } from "../shopify.server.js";   // <-- FIXED PATH
 
 export async function loader({ request, params }) {
   const { admin } = await authenticate.admin(request);
