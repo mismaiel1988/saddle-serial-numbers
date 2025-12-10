@@ -1,6 +1,10 @@
-import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { PolarisAppProvider, Frame } from "@shopify/polaris";
+import {
+  AppProvider as PolarisProvider,
+  Frame
+} from "@shopify/polaris";
+
 import enTranslations from "@shopify/polaris/locales/en.json";
+import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { Outlet, useLocation } from "react-router";
 
 export default function App() {
@@ -16,11 +20,11 @@ export default function App() {
         forceRedirect: true,
       }}
     >
-      <PolarisAppProvider i18n={enTranslations}>
+      <PolarisProvider i18n={enTranslations}>
         <Frame>
           <Outlet />
         </Frame>
-      </PolarisAppProvider>
+      </PolarisProvider>
     </AppProvider>
   );
 }
