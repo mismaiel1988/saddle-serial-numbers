@@ -1,26 +1,35 @@
-import { AppProvider as PolarisAppProvider, Frame } from "@shopify/polaris";
-import enTranslations from "@shopify/polaris/locales/en.json";
-import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { Outlet, useLocation } from "react-router";
+import {
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useLoaderData,
+} from "@remix-run/react";
+import { AppProvider } from "@shopify/polaris";
+import polarisStyles from "@shopify/polaris/build/esm/styles.css";
 
-export default function Root() {
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const host = params.get("host");
+export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
+export const loader = async () => {
+  return {};
+};
+
+export default function App() {
   return (
-    <AppProvider
-      config={{
-        apiKey: import.meta.env.VITE_SHOPIFY_API_KEY,
-        host,
-        forceRedirect: true,
-      }}
-    >
-      <PolarisAppProvider i18n={enTranslations}>
-        <Frame>
+    <html lang="en">
+      <head>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <AppProvider i18n={{}}>
           <Outlet />
-        </Frame>
-      </PolarisAppProvider>
-    </AppProvider>
+        </AppProvider>
+
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
   );
 }
