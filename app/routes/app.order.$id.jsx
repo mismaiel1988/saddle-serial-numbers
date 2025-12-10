@@ -1,26 +1,14 @@
-import {
-  useLoaderData,
-  useSubmit,
-  Form,
-  useActionData,
-} from "react-router";
-import {
-  Page,
-  Card,
-  TextField,
-  Button,
-  BlockStack,
-  Text,
-} from "@shopify/polaris";
-import { authenticate } from "../shopify.server.js";
+import { useLoaderData, Form, redirect } from "react-router";
+import { authenticate } from "../../shopify.server.js";
 
-export const loader = async ({ request, params }) => {
+export async function loader({ request, params }) {
   const { admin } = await authenticate.admin(request);
 
-  const orderId = decodeURIComponent(params.id);
+  const globalId = `gid://shopify/Order/${params.id}`;
 
-  const response = await admin.graphql(`
-    query GetOrder($id: ID!) {
+  const response = await admin.graphql(
+    `
+    query($id: ID!) {
       order(id: $id) {
         id
         name
@@ -30,91 +18,80 @@ export const loader = async ({ request, params }) => {
               id
               title
               quantity
-              customAttributes {
-                key
-                value
-              }
+              product { tags }
             }
           }
         }
       }
     }
-  `, {
-    variables: { id: orderId },
-  });
+  `,
+    { variables: { id: globalId } }
+  );
 
-  const json = await response.json();
-  return { order: json.data.order };
-};
+  const data = await response.json();
+  return { order: data.data.order };
+}
 
-export const action = async ({ request, params }) => {
-  const formData = await request.formData();
-  const serials = formData.get("serials"); // comma-separated
-  const lineItemId = formData.get("lineItemId");
-
+export async function action({ request }) {
   const { admin } = await authenticate.admin(request);
+  const form = await request.formData();
 
-  await admin.graphql(`
-    mutation UpdateLineItemMetafield($input: OrderLineItemUpdateInput!) {
-      orderLineItemUpdate(input: $input) {
-        orderLineItem {
-          id
-        }
-        userErrors {
-          field
-          message
+  const metafieldValue = form.get("serials");
+  const orderId = form.get("orderId");
+
+  await admin.graphql(
+    `
+      mutation($input: MetafieldsSetInput!) {
+        metafieldsSet(metafields: [$input]) {
+          metafields { id }
+          userErrors { message }
         }
       }
+    `,
+    {
+      variables: {
+        input: {
+          ownerId: orderId,
+          namespace: "custom",
+          key: "serial_numbers",
+          value: metafieldValue,
+          type: "single_line_text_field",
+        },
+      },
     }
-  `, {
-    variables: {
-      input: {
-        id: lineItemId,
-        customAttributes: [
-          {
-            key: "serial_numbers",
-            value: serials,
-          }
-        ]
-      }
-    }
-  });
+  );
 
-  return { success: true };
-};
+  return redirect(`/app`);
+}
 
 export default function OrderSerialPage() {
   const { order } = useLoaderData();
-  const actionData = useActionData();
 
   return (
-    <Page
-      title={`Assign Serials – ${order.name}`}
-      backAction={{ content: "Back", url: "/app" }}
-    >
-      {actionData?.success && (
-        <Text tone="success">Saved successfully!</Text>
-      )}
+    <div style={{ padding: 20 }}>
+      <h1>{order.name}</h1>
+      <Form method="post">
+        <input type="hidden" name="orderId" value={order.id} />
 
-      {order.lineItems.edges.map(({ node }) => (
-        <Card key={node.id} title={node.title} sectioned>
-          <Form method="post">
-            <input type="hidden" name="lineItemId" value={node.id} />
+        {order.lineItems.edges.map(({ node }) =>
+          node.product?.tags.includes("saddles") ? (
+            <div key={node.id} style={{ marginBottom: 16 }}>
+              <label>
+                {node.title}
+                <br />
+                <input
+                  type="text"
+                  name="serials"
+                  placeholder="Enter serial numbers"
+                  style={{ width: "100%", padding: 8 }}
+                />
+              </label>
+            </div>
+          ) : null
+        )}
 
-            <BlockStack gap="400">
-              <TextField
-                label="Serial Numbers"
-                name="serials"
-                autoComplete="off"
-                placeholder="ABC123, DEF456, GHI789"
-                labelHidden={false}
-              />
-
-              <Button submit>Save</Button>
-            </BlockStack>
-          </Form>
-        </Card>
-      ))}
-    </Page>
+        <button type="submit">Save</button>
+      </Form>
+    </div>
   );
 }

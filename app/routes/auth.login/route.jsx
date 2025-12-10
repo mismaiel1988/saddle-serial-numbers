@@ -1,44 +1,32 @@
-import { redirect, Form, useLoaderData } from "react-router";
-import { login } from "../../shopify.server";
+import { redirect, json } from "react-router";
+import { Form } from "react-router";
+import styles from "./styles.module.css";
 
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
 
-  // If Shopify sends ?shop=xxxxx, redirect to OAuth
   if (url.searchParams.get("shop")) {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
 
-  return { errors: null };
-};
-
-export const action = async ({ request }) => {
-  return login(request);
+  return json({ showForm: true });
 };
 
 export default function Login() {
-  const { errors } = useLoaderData();
-
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Log in</h1>
-
-      {errors && <p style={{ color: "red" }}>{errors}</p>}
-
-      <Form method="POST">
-        <label>
-          Shop domain:
-          <input
-            name="shop"
-            placeholder="my-store.myshopify.com"
-            style={{ marginLeft: "1rem" }}
-          />
-        </label>
-
-        <button type="submit" style={{ marginLeft: "1rem" }}>
-          Log in
-        </button>
-      </Form>
+    <div className={styles.index}>
+      <div className={styles.content}>
+        <h1 className={styles.heading}>Log in to continue</h1>
+        <Form className={styles.form} method="post" action="/auth/login">
+          <label className={styles.label}>
+            <span>Shop domain</span>
+            <input className={styles.input} type="text" name="shop" />
+          </label>
+          <button className={styles.button} type="submit">
+            Log in
+          </button>
+        </Form>
+      </div>
     </div>
   );
 }
