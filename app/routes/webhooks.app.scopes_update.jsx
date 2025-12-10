@@ -1,6 +1,15 @@
-import { authenticate } from "../shopify.server.js";
+import { authenticate } from "../../shopify.server.js";
 
-export const action = async ({ request }) => {
-  const { topic, shop, session } = await authenticate.webhook(request);
-  return new Response("OK");
-};
+export async function action({ request }) {
+  try {
+    const { topic, shop } = await authenticate.webhook(request);
+
+    console.log(`Webhook Received: ${topic} from ${shop}`);
+    console.log("App scopes updated successfully.");
+
+    return new Response("OK", { status: 200 });
+  } catch (error) {
+    console.error("Scopes Update Webhook Error:", error);
+    return new Response("Webhook error", { status: 500 });
+  }
+}

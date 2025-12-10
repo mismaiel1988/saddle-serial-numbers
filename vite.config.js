@@ -1,10 +1,9 @@
-import { defineConfig } from "vite";
 import { reactRouter } from "@react-router/dev/vite";
+import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-// -----------------------------------------------------------------------------
-// FIX HOST ENV VAR FOR SHOPIFY / RENDER
-// -----------------------------------------------------------------------------
+// Shopify CLI occasionally injects HOST which breaks Vite.
+// Normalize SHOPIFY_APP_URL instead.
 if (
   process.env.HOST &&
   (!process.env.SHOPIFY_APP_URL ||
@@ -14,13 +13,13 @@ if (
   delete process.env.HOST;
 }
 
-// Determine hostname so Vite HMR can connect correctly
-const host = new URL(process.env.SHOPIFY_APP_URL || "http://localhost").hostname;
+const appUrl = process.env.SHOPIFY_APP_URL || "http://localhost:3000";
+const hostname = new URL(appUrl).hostname;
 
 let hmrConfig;
 
-if (host === "localhost") {
-  // Local Dev HMR (when running `npm run dev`)
+// If running locally → Open HMR port
+if (hostname === "localhost") {
   hmrConfig = {
     protocol: "ws",
     host: "localhost",
@@ -28,50 +27,34 @@ if (host === "localhost") {
     clientPort: 64999,
   };
 } else {
-  // Production HMR (Render environment)
+  // Production inside Shopify IFrame → Use secure HMR
   hmrConfig = {
     protocol: "wss",
-    host,
-    port: Number(process.env.FRONTEND_PORT) || 8002,
+    host: hostname,
     clientPort: 443,
   };
 }
 
-// -----------------------------------------------------------------------------
-// FINAL CLEAN VITE CONFIG
-// -----------------------------------------------------------------------------
 export default defineConfig({
-  server: {
-    allowedHosts: [host],
-    cors: {
-      preflightContinue: true,
-    },
-    port: Number(process.env.PORT || 3000),
-    hmr: hmrConfig,
-    fs: {
-      allow: ["app", "node_modules"],
-    },
-  },
+  plugins: [reactRouter(), tsconfigPaths()],
 
-  plugins: [
-    reactRouter(),  // Enables React Router v7 support
-    tsconfigPaths() // Allows TS/JS path aliases
-  ],
-
-  // ----------------------------------------------------------------------------
-  // MOST IMPORTANT PART FOR RENDER: ensure build directories match server setup
-  // ----------------------------------------------------------------------------
   build: {
-    outDir: "build/client",   // <-- REQUIRED for react-router-serve
-    assetsDir: "assets",      // <-- REQUIRED so /assets/*.js resolves
-    assetsInlineLimit: 0,     // Prevent inlining large bundles
-    emptyOutDir: true,
+    assetsInlineLimit: 0,
   },
 
   optimizeDeps: {
-    include: [
-      "@shopify/app-bridge-react",
-      "@shopify/polaris"
-    ],
+    include: ["@shopify/app-bridge-react", "@shopify/polaris"],
+  },
+
+  server: {
+    allowedHosts: [hostname],
+    port: Number(process.env.PORT || 3000),
+    hmr: hmrConfig,
+    cors: {
+      preflightContinue: true,
+    },
+    fs: {
+      allow: ["app", "node_modules"],
+    },
   },
 });

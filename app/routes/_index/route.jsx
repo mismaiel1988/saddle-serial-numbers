@@ -4,9 +4,9 @@ export async function loader() {
 
 export default function Index() {
   return (
-    <div style={{ padding: 40, fontSize: 18 }}>
-      <p>Shopify app root route</p>
-      <p>This does not load inside the Admin unless visited manually.</p>
+    <div style={{ padding: 40 }}>
+      <h2>Shopify App Loaded</h2>
+      <p>This is the root route and is not displayed inside Shopify Admin.</p>
     </div>
   );
 }
