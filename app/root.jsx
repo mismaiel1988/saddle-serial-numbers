@@ -6,21 +6,16 @@ import {
   ScrollRestoration,
 } from "react-router";
 
-// Polaris React provider
 import { AppProvider } from "@shopify/polaris";
 
-// CSS must be imported using ?url so Vite/Rollup treats it as an asset
-import polarisStylesUrl from "@shopify/polaris/build/esm/styles.css?url";
-
-export const links = () => [
-  { rel: "stylesheet", href: polarisStylesUrl },
-];
+// Polaris global styles (correct way)
+import "@shopify/polaris/build/esm/styles.css";
 
 export async function loader() {
   return {};
 }
 
-export default function Root() {
+export default function App() {
   return (
     <html lang="en">
       <head>
