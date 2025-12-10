@@ -4,16 +4,18 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLoaderData,
-} from "@remix-run/react";
+} from "react-router"; // <-- correct package
+
 import { AppProvider } from "@shopify/polaris";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css";
 
-export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
+export const links = () => [
+  { rel: "stylesheet", href: polarisStyles },
+];
 
-export const loader = async () => {
+export async function loader() {
   return {};
-};
+}
 
 export default function App() {
   return (
