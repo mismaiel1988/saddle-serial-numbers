@@ -8,7 +8,7 @@ import {
 
 import { AppProvider } from "@shopify/polaris";
 
-// Polaris CSS via CDN (required for React Router SSR)
+// Polaris CSS via CDN (safe for React Router SSR)
 const POLARIS_CSS_URL =
   "https://unpkg.com/@shopify/polaris@13/build/esm/styles.css";
 

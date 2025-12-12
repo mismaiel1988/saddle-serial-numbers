@@ -2,13 +2,10 @@ import { redirect, Form, useLoaderData } from "react-router";
 import { login } from "../../shopify.server.js";
 import styles from "./styles.module.css";
 
-// ----------------------
-// Loader
-// ----------------------
 export async function loader({ request }) {
   const url = new URL(request.url);
 
-  // If Shopify passes ?shop=xxxxx, begin OAuth login
+  // If Shopify passes ?shop=xxx, start OAuth
   if (url.searchParams.get("shop")) {
     throw redirect(`/auth?${url.searchParams.toString()}`);
   }
@@ -16,27 +13,18 @@ export async function loader({ request }) {
   return { showForm: true };
 }
 
-// ----------------------
-// Action (Begin login)
-// ----------------------
 export async function action({ request }) {
-  return login(request); // handled by Shopify server SDK
+  return login(request);
 }
 
-// ----------------------
-// Component
-// ----------------------
 export default function Login() {
   const { showForm } = useLoaderData();
 
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>Log in to Your Shopify Store</h1>
-
-        <p className={styles.text}>
-          Enter your store domain to continue.
-        </p>
+        <h1 className={styles.heading}>Log in to your Shopify store</h1>
+        <p className={styles.text}>Enter your store domain to continue.</p>
 
         {showForm && (
           <Form className={styles.form} method="post">
@@ -50,7 +38,6 @@ export default function Login() {
                 required
               />
             </label>
-
             <button className={styles.button} type="submit">
               Log in
             </button>

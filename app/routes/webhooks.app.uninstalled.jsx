@@ -2,13 +2,10 @@ import { authenticate } from "../../shopify.server.js";
 
 export async function action({ request }) {
   try {
-    // Validate the webhook & get admin client and payload
-    const { topic, shop, admin } = await authenticate.webhook(request);
+    const { topic, shop } = await authenticate.webhook(request);
 
     console.log(`Webhook Received: ${topic} from ${shop}`);
-
-    // Clear sessions, cleanup, etc. (optional)
-    // await admin.graphql(`mutation { ... }`);
+    // Optional: clean up sessions, etc.
 
     return new Response("OK", { status: 200 });
   } catch (error) {

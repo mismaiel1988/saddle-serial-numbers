@@ -1,34 +1,31 @@
 import { useLoaderData, Form, redirect } from "react-router";
 import { authenticate } from "../../shopify.server.js";
 
-// ----------------------
-// Loader
-// ----------------------
+// Loader: fetch a single order by numeric ID (converted to GID)
 export async function loader({ request, params }) {
   const { admin } = await authenticate.admin(request);
 
-  // Convert numeric ID → Shopify Global ID
   const globalId = `gid://shopify/Order/${params.id}`;
 
   const response = await admin.graphql(
     `
-    query ($id: ID!) {
-      order(id: $id) {
-        id
-        name
-        lineItems(first: 50) {
-          edges {
-            node {
-              id
-              title
-              quantity
-              product { tags }
+      query ($id: ID!) {
+        order(id: $id) {
+          id
+          name
+          lineItems(first: 50) {
+            edges {
+              node {
+                id
+                title
+                quantity
+                product { tags }
+              }
             }
           }
         }
       }
-    }
-  `,
+    `,
     { variables: { id: globalId } }
   );
 
@@ -36,26 +33,23 @@ export async function loader({ request, params }) {
   return { order: json.data.order };
 }
 
-// ----------------------
-// Action (Save serials)
-// ----------------------
+// Action: save serial numbers metafield
 export async function action({ request }) {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
 
-  const serials = form.getAll("serial[]"); // array of serials
+  const serials = form.getAll("serial[]");
   const orderId = form.get("orderId");
 
-  // Save JSON metafield
   await admin.graphql(
     `
-    mutation SetSerials($input: MetafieldsSetInput!) {
-      metafieldsSet(metafields: [$input]) {
-        metafields { id }
-        userErrors { message }
+      mutation SetSerials($input: MetafieldsSetInput!) {
+        metafieldsSet(metafields: [$input]) {
+          metafields { id }
+          userErrors { message }
+        }
       }
-    }
-  `,
+    `,
     {
       variables: {
         input: {
@@ -69,13 +63,9 @@ export async function action({ request }) {
     }
   );
 
-  // Redirect back to the main dashboard
   return redirect("/app");
 }
 
-// ----------------------
-// Component UI
-// ----------------------
 export default function OrderSerialPage() {
   const { order } = useLoaderData();
 
@@ -103,17 +93,15 @@ export default function OrderSerialPage() {
             <strong>{node.title}</strong>
             <br />
             Quantity: {node.quantity}
-            <br />
-
             {Array.from({ length: node.quantity }).map((_, index) => (
               <div key={index} style={{ marginTop: 8 }}>
                 <label>
-                  Serial #{index + 1}:{" "}
+                  Serial #{index + 1}:
                   <input
                     name="serial[]"
                     type="text"
-                    placeholder="Enter serial number"
                     required
+                    placeholder="Enter serial number"
                     style={{
                       padding: 8,
                       width: "100%",

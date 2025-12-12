@@ -38,14 +38,13 @@ export async function loader({ request }) {
   const json = await response.json();
 
   const orders = json.data.orders.edges
-    .map((edge) => edge.node)
-    .filter((order) => {
+    .map(edge => edge.node)
+    .filter(order => {
       const hasSaddle = order.lineItems.edges.some(
         ({ node }) => node.product?.tags.includes("saddles")
       );
       const hasSerials = Boolean(order.metafield?.value);
-
-      return hasSaddle && !hasSerials; // Only show orders missing serials
+      return hasSaddle && !hasSerials;
     });
 
   return { orders };
@@ -56,20 +55,20 @@ export default function AppIndex() {
 
   return (
     <div style={{ padding: 24 }}>
-      <h1 style={{ marginBottom: 20 }}>Orders Missing Serial Numbers</h1>
+      <h1>Orders Missing Serial Numbers</h1>
 
       {orders.length === 0 && (
-        <p style={{ fontSize: 16 }}>🎉 All saddle orders have serial numbers!</p>
+        <p>🎉 All saddle orders have serial numbers!</p>
       )}
 
-      {orders.map((order) => {
-        const orderNumericId = order.id.split("/").pop(); // from gid://shopify/Order/1234
+      {orders.map(order => {
+        const id = order.id.split("/").pop();
 
         return (
           <div
             key={order.id}
             style={{
-              padding: "16px",
+              padding: 16,
               border: "1px solid #ddd",
               borderRadius: 8,
               marginBottom: 12,
@@ -77,16 +76,14 @@ export default function AppIndex() {
           >
             <strong>{order.name}</strong>
             <br />
-            Customer: {order.customer?.firstName} {order.customer?.lastName}
-            <br />
-            Created: {new Date(order.createdAt).toLocaleString()}
+            {order.customer?.firstName} {order.customer?.lastName}
             <br />
             <a
-              href={`/app/order/${orderNumericId}`}
+              href={`/app/order/${id}`}
               style={{
                 display: "inline-block",
                 marginTop: 10,
-                padding: "8px 14px",
+                padding: "8px 12px",
                 background: "#008060",
                 color: "white",
                 borderRadius: 4,

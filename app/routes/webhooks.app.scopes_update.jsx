@@ -5,7 +5,7 @@ export async function action({ request }) {
     const { topic, shop } = await authenticate.webhook(request);
 
     console.log(`Webhook Received: ${topic} from ${shop}`);
-    console.log("App scopes updated successfully.");
+    console.log("App scopes updated.");
 
     return new Response("OK", { status: 200 });
   } catch (error) {
